@@ -6,7 +6,7 @@ function SS = stimTTLWaveOutput(myScreenInfo,Pars)
 %
 % 2024-11 DS made from stimTTLOutput
 
-%% 
+%
 
 if nargin < 1
     error('Must at least specify myScreenInfo');
