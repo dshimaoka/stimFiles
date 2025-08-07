@@ -56,7 +56,7 @@ SS.Type = 'stimTTLSwitch';
 SS.Parameters = Pars;
 
 % fs = 40000; 
-fs = 1000;%5000
+fs = 10000;
 nt = ceil(dur*fs);
 tt = (1:nt)./fs;
 
