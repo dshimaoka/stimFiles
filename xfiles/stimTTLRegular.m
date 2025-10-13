@@ -20,8 +20,8 @@ pp = cell(1,1);
 pp{1} = {'nPtn', '#images per condition',1,1,100000};
 pp{2} = {'ptnIdx', 'Pattern ID',1,1,100000}; %must be identical to condition number ... no need to provide as an input
 pp{3}  = {'WaveAmp',   'Amplitude of wave (mV*1000)',    100, 0, 5000};
-pp{4}  = {'WaveFreq',  'Frequency (Hz*10)',             4400,0,20000};
-pp{5}  = {'WaveDurOn',     'Duration of ON period per image (ms)',   20,0,inf}; 
+pp{4}  = {'WaveFreq',  'Frequency (Hz)',             4400,0,20000};
+pp{5}  = {'WaveDurOn',     'Duration of ON period per image (ms)',   20,0,1000}; 
 x = XFile('stimTTLRegular',pp);
 % x.Write; % call this ONCE: it writes the .x file
 
@@ -35,20 +35,17 @@ end
 nPtn = Pars(1); %number of patterns per condition registered in polyScan. MUST BE constant across mpep stim number
 PtnIdx = Pars(2);
 WaveAmp = Pars(3)/1000; %V
-WaveFreq = Pars(4)/10;    % Hz
+WaveFreq = Pars(4);    % Hz
 WaveDurOn   = Pars(5);    % ms
 
 margin = 1; %number of blank frames before/after TTL switching ... could be just 0?
 
 dur = nPtn/WaveFreq; %s
-fs = 10000;
+fs = 5000;
 nt = ceil(dur*fs);
 % tt = (1:nt)./fs;
 
 disp(['stimTTLRegular: stim duration ' num2str(dur) '(s)']);
-WaveStart   = ceil(2*1000*nConds*nPtn/fs);%Pars(5);    % ms
-WaveStop    = WaveStart+dur*1000;%Pars(6);    % ms
-WaveDurOn_TTL   = 2;%Pars(8);    % ms % to switch DMD images
 
 %% Make the stimulus
 
@@ -57,9 +54,6 @@ SS.Type = 'stimTTLRegular';
 SS.Parameters = Pars;
 
 
-ntWavestart = ceil(WaveStart/1000*fs);
-ntWavestop = ceil(WaveStop/1000*fs);
-ttWave = (1:ntWavestop-ntWavestart-1)./fs;
 
 % a blank visual stimulus
 SS.nTextures = 1;
@@ -74,12 +68,22 @@ SS.DestRects   = repmat([1; 1; 1; 1],[1 1 SS.nFrames]);
 
 SS.WaveStim.Waves = zeros(nt,2); 
 
+nConds = size(SS.Parameters,2);
+WaveStart   = ceil(2*1000*nConds*nPtn/fs);%Pars(5);    % ms
+WaveStop    = WaveStart+dur*1000;%Pars(6);    % ms
+WaveDurOn_TTL   = 2;%Pars(8);    % ms % to switch DMD images
+
+ntWavestart = ceil(WaveStart/1000*fs);
+ntWavestop = ceil(WaveStop/1000*fs);
+ttWave = (1:ntWavestop-ntWavestart-1)./fs; %[s]
+
 %% wave
-if isinf(WaveDurOn)
+if WaveDurOn==0 %constant ON 
     SS.WaveStim.Waves(ntWavestart:ntWavestop-2,1) = WaveAmp;
 else
+    duty = WaveDurOn/1000*WaveFreq*100; %on duration in one cycle [%]
     SS.WaveStim.Waves(ntWavestart:ntWavestop-2,1) = ...
-        WaveAmp*square(2*pi*WaveFreq*ttWave, WaveDurOn/1000*WaveFreq*100)';
+        WaveAmp*square(2*pi*WaveFreq*ttWave, duty)';
 end
 
 %% TTL
@@ -100,7 +104,7 @@ end
 
 %regular freq during trial
 SS.WaveStim.Waves(ntWavestart:ntWavestop-2,2) = ...
-    5*square(2*pi*WaveFreq*ttWave, WaveDurOn_TTL/1000*WaveFreq*100)';
+    2.5*(square(2*pi*WaveFreq*ttWave, WaveDurOn_TTL/1000*WaveFreq*100)-1)';
 
 
 
