@@ -17,11 +17,12 @@ end
 %% The parameters and their definition
 
 pp = cell(1,1);
-pp{1} = {'nPtn', '#images per condition',1,1,100000};
-pp{2} = {'ptnIdx', 'Pattern ID',1,1,100000}; %must be identical to condition number ... no need to provide as an input
-pp{3}  = {'WaveAmp',   'Amplitude of wave (mV*1000)',    100, 0, 5000};
-pp{4}  = {'WaveFreq',  'Frequency (Hz)',             4400,0,20000};
-pp{5}  = {'WaveDuty',     'percentage of ON period per presentation(%)',   50,0,100}; 
+pp{1} = {'nPtn', '#images stored in DMD',1,1,100000};
+pp{2} = {'firstID', 'First Pattern ID to present',1,1,100000};
+pp{3} = {'lastID', 'Last Pattern ID to present',1,1,100000};
+pp{4}  = {'WaveAmp',   'Amplitude of wave (mV*1000)',    100, 0, 5000};
+pp{5}  = {'WaveFreq',  'Frequency (Hz)',             4400,0,20000};
+pp{6}  = {'WaveDuty',     'percentage of ON period per presentation(%)',   50,0,100}; 
 x = XFile('stimTTLRegular',pp);
 % x.Write; % call this ONCE: it writes the .x file
 
@@ -33,10 +34,13 @@ end
 
 
 nPtn = Pars(1); %number of patterns per condition registered in polyScan. MUST BE constant across mpep stim number
-PtnIdx = Pars(2);
-WaveAmp = Pars(3)/1000; %V
-WaveFreq = Pars(4);    % Hz
-WaveDuty   = Pars(5);    % [%]
+firstID = Pars(2);
+lastID = Pars(3);
+assert(firstID<lastID);
+assert(lastID<=nPtn);
+WaveAmp = Pars(4)/1000; %V
+WaveFreq = Pars(5);    % Hz
+WaveDuty   = Pars(6);    % [%]
 
 margin = 1; %number of blank frames before/after TTL switching ... could be just 0?
 wavedur = nPtn/WaveFreq; %s
@@ -48,8 +52,8 @@ SS = ScreenStim; % initialization
 SS.Type = 'stimTTLRegular';
 SS.Parameters = Pars;
 
-nConds = size(SS.Parameters,2);
-WaveStart   = ceil(2*1000*nConds*nPtn/fs);%Pars(5);    % ms
+%nConds = size(SS.Parameters,2);
+WaveStart   = ceil(2*1000*nPtn/fs);%Pars(5);    % ms
 WaveStop    = WaveStart+wavedur*1000;%Pars(6);    % ms
 WaveDurOn_TTL   = 2;%Pars(8);    % ms % to switch DMD images
 
@@ -81,13 +85,15 @@ SS.WaveStim.Waves(ntWavestart:ntWavestop-2,1) = ...
 
 %% TTL
 %before Wave, fast forward to the x-th ptn
-nTTL_before = (PtnIdx-1)*nPtn;% - 1;
+%nTTL_before = (PtnIdx-1)*nPtn;% - 1;
+nTTL_before = firstID-1;
 if nTTL_before >= 1
     SS.WaveStim.Waves(ntWavestart-margin-2*nTTL_before+1:2:ntWavestart-margin,2) = 5;
 end
 
 %after Wave, reset to the 1st ptn
-nTTL_after  = nConds*nPtn - PtnIdx*nPtn;% + 1;
+% nTTL_after  = nConds*nPtn - PtnIdx*nPtn;% + 1;
+nTTL_after = nPtn - lastID;
 if nTTL_after >= 1
     SS.WaveStim.Waves(ntWavestop+margin:2:ntWavestop+margin+2*nTTL_after-1,2) = 5;
 end
