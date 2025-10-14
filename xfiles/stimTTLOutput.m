@@ -84,7 +84,8 @@ SS.Type = 'stimWaveOutput';
 SS.Parameters = Pars;
 
 % fs = 40000; 
-fs = 125e3; %13.10,20
+% fs = 125e3; %13.10,20
+fs = 5000; %14/10/25
 nt = ceil(dur*fs);
 tt = (1:nt)./fs;
 

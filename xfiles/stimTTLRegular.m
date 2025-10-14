@@ -17,9 +17,9 @@ end
 %% The parameters and their definition
 
 pp = cell(1,1);
-pp{1} = {'nPtn', '#images stored in DMD',1,1,100000};
-pp{2} = {'firstID', 'First Pattern ID to present',1,1,100000};
-pp{3} = {'lastID', 'Last Pattern ID to present',1,1,100000};
+pp{1} = {'nPtn', '#images stored in DMD',1,0,100000};
+pp{2} = {'firstID', 'First Pattern ID to present',1,0,100000};
+pp{3} = {'lastID', 'Last Pattern ID to present',1,0,100000};
 pp{4}  = {'WaveAmp',   'Amplitude of wave (mV*1000)',    100, 0, 5000};
 pp{5}  = {'WaveFreq',  'Frequency (Hz)',             4400,0,20000};
 pp{6}  = {'WaveDuty',     'percentage of ON period per presentation(%)',   50,0,100}; 
@@ -36,14 +36,14 @@ end
 nPtn = Pars(1); %number of patterns per condition registered in polyScan. MUST BE constant across mpep stim number
 firstID = Pars(2);
 lastID = Pars(3);
-assert(firstID<lastID);
+assert(firstID<=lastID);
 assert(lastID<=nPtn);
 WaveAmp = Pars(4)/1000; %V
 WaveFreq = Pars(5);    % Hz
 WaveDuty   = Pars(6);    % [%]
 
 margin = 1; %number of blank frames before/after TTL switching ... could be just 0?
-wavedur = nPtn/WaveFreq; %s
+wavedur = (lastID-firstID + 1)/WaveFreq; %s
 fs = 5000;
 
 %% Make the stimulus
@@ -78,30 +78,32 @@ SS.DestRects   = repmat([1; 1; 1; 1],[1 1 SS.nFrames]);
 
 SS.WaveStim.Waves = zeros(nt,2); 
 
-%% wave
-SS.WaveStim.Waves(ntWavestart:ntWavestop-2,1) = ...
-    0.5*WaveAmp*(square(2*pi*WaveFreq*ttWave, WaveDuty)+1)';
-
-
-%% TTL
-%before Wave, fast forward to the x-th ptn
-%nTTL_before = (PtnIdx-1)*nPtn;% - 1;
-nTTL_before = firstID-1;
-if nTTL_before >= 1
-    SS.WaveStim.Waves(ntWavestart-margin-2*nTTL_before+1:2:ntWavestart-margin,2) = 5;
+if nPtn > 0
+    
+    %% wave
+    SS.WaveStim.Waves(ntWavestart:ntWavestop-2,1) = ...
+        0.5*WaveAmp*(square(2*pi*WaveFreq*ttWave, WaveDuty)+1)';
+    
+    
+    %% TTL
+    %before Wave, fast forward to the x-th ptn
+    %nTTL_before = (PtnIdx-1)*nPtn;% - 1;
+    nTTL_before = firstID-1;
+    if nTTL_before >= 1
+        SS.WaveStim.Waves(ntWavestart-margin-2*nTTL_before+1:2:ntWavestart-margin,2) = 5;
+    end
+    
+    %after Wave, reset to the 1st ptn
+    % nTTL_after  = nConds*nPtn - PtnIdx*nPtn;% + 1;
+    nTTL_after = nPtn - lastID;
+    if nTTL_after >= 1
+        SS.WaveStim.Waves(ntWavestop+margin:2:ntWavestop+margin+2*nTTL_after-1,2) = 5;
+    end
+    
+    %regular freq during trial
+    SS.WaveStim.Waves(ntWavestart:ntWavestop-2,2) = ...
+        2.5*(square(2*pi*WaveFreq*ttWave, WaveDurOn_TTL/1000*WaveFreq*100)+1)';
 end
-
-%after Wave, reset to the 1st ptn
-% nTTL_after  = nConds*nPtn - PtnIdx*nPtn;% + 1;
-nTTL_after = nPtn - lastID;
-if nTTL_after >= 1
-    SS.WaveStim.Waves(ntWavestop+margin:2:ntWavestop+margin+2*nTTL_after-1,2) = 5;
-end
-
-%regular freq during trial
-SS.WaveStim.Waves(ntWavestart:ntWavestop-2,2) = ...
-    2.5*(square(2*pi*WaveFreq*ttWave, WaveDurOn_TTL/1000*WaveFreq*100)+1)';
-
 
 SS.WaveStim.SampleRate = fs;
 

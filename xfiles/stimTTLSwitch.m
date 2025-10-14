@@ -56,7 +56,7 @@ SS.Type = 'stimTTLSwitch';
 SS.Parameters = Pars;
 
 % fs = 40000; 
-fs = 10000;
+fs = 5000;
 nt = ceil(dur*fs);
 tt = (1:nt)./fs;
 
@@ -77,26 +77,30 @@ SS.DestRects   = repmat([1; 1; 1; 1],[1 1 SS.nFrames]);
 
 SS.WaveStim.Waves = zeros(nt,2); %zeros(nt,1)
 
-%% wave
-SS.WaveStim.Waves(ntWavestart:ntWavestop-2,1) = ...
-    WaveAmp*square(2*pi*WaveFreq*ttWave, WaveDurOn/1000*WaveFreq*100)';
 
-%% TTL
-
-%before Wave, fast forward to the x-th ptn
-nTTL_before = PtnIdx;% - 1;
-if nTTL_before >= 1
-    assert(ntWavestart-margin-2*nTTL_before+1>0, 'Not enough time for Ptn switching. Increase WaveStart');
-    SS.WaveStim.Waves(ntWavestart-margin-2*nTTL_before+1:2:ntWavestart-margin,2) = 5;
-end
-
-%after Wave, reset to the 1st ptn
-nTTL_after  = nPtn - PtnIdxp;% + 1;
-if nTTL_after >= 1
-    assert(ntWavestop+margin+2*nTTL_after-1<nt, 'Not enough time for Ptn switching. Increase dur or decrease WaveStop');
+if nPtn > 0
+    
+    %% wave
+    SS.WaveStim.Waves(ntWavestart:ntWavestop-2,1) = ...
+        WaveAmp*square(2*pi*WaveFreq*ttWave, WaveDurOn/1000*WaveFreq*100)';
+    
+    
+    %% TTL
+    
+    %before Wave, fast forward to the x-th ptn
+    nTTL_before = PtnIdx;% - 1;
+    if nTTL_before >= 1
+        assert(ntWavestart-margin-2*nTTL_before+1>0, 'Not enough time for Ptn switching. Increase WaveStart');
+        SS.WaveStim.Waves(ntWavestart-margin-2*nTTL_before+1:2:ntWavestart-margin,2) = 5;
+    end
+    
+    %after Wave, reset to the 1st ptn
+    nTTL_after  = nPtn - PtnIdx;% + 1;
+    if nTTL_after >= 1
+        assert(ntWavestop+margin+2*nTTL_after-1<nt, 'Not enough time for Ptn switching. Increase dur or decrease WaveStop');
         SS.WaveStim.Waves(ntWavestop+margin:2:ntWavestop+margin+2*nTTL_after-1,2) = 5;
+    end
 end
-
 
 SS.WaveStim.SampleRate = fs;
 
