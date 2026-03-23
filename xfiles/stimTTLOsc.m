@@ -40,7 +40,7 @@ dur     = Pars(1)/10;   % s
 WaveAmp = Pars(2)/1000; % V
 WaveStart   = Pars(3);    % ms
 WaveStop    = Pars(4);    % ms
-WaveFreq = Pars(5)/100;    % Hz
+WaveFreq = Pars(5)/1000;    % Hz
 
 %% Make the stimulus
 
@@ -71,8 +71,9 @@ SS.WaveStim.Waves = zeros(nt,2);
 
     
 %% wave
+Vth=0;
 SS.WaveStim.Waves(ntWavestart:ntWavestop-2,1) = ...
-        (WaveAmp-1)*abs(sin(2*pi*WaveFreq*ttWave)') + 1;    
+        (WaveAmp-Vth)*abs(sin(2*pi*WaveFreq*ttWave)') + Vth;    
     
     
 %% TTL
@@ -82,7 +83,11 @@ SS.WaveStim.Waves(ntWavestart:ntWavestop-2, 2) = 5*(abs(square(4*pi*WaveFreq*ttW
 
 %after Wave, reset to the 1st ptn
 %nFlips = sum(   SS.WaveStim.Waves(ntWavestart:ntWavestop-2,2));
-nFlips =  ceil((ntWavestop-ntWavestart)/fs*2);
+% nFlips =  ceil((ntWavestop-ntWavestart)/fs*2);
+binalized = (SS.WaveStim.Waves(:,2) > 2.5);
+triggers = (diff(binalized)>0);
+nFlips = sum(triggers);
+
 if mod(nFlips,2) == 1
     SS.WaveStim.Waves(ntWavestop,2) = 5;
 end
