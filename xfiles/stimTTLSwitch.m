@@ -55,8 +55,7 @@ SS = ScreenStim; % initialization
 SS.Type = 'stimTTLSwitch';
 SS.Parameters = Pars;
 
-% fs = 40000; 
-fs = 5000;
+fs = myScreenInfo.WaveInfo.SampleRate;%6600*2;%5000;
 nt = ceil(dur*fs);
 tt = (1:nt)./fs;
 
