@@ -11,7 +11,7 @@ foo periodic	28
 0	dur		"Stimulus duration (s *10)"		60	1-1200 1+
 1	swT1		"Time of switch from 1 to 2 (s *10)"	20	1-1200 1+
 2	swT2		"Time of switch from 2 to 3 (s *10)"	40	1-1200 1+
-3 	dima		"Inner Diam or Size X (deg *10)"	30	0-1200 1+
+3 	dima		"Inner Diam or Size X (deg *10)"	30	0-2500 1+
 4	dimb		"Outer Diam or Size Y (deg *10)"	100	1-2000 1+
 5	x		"Center, x (deg *10)"			-50	-1500-1500 1+
 6	y		"Center, y (deg *10)"			0	-800-800 1+
