@@ -36,8 +36,8 @@ end
 
 dur     = Pars(1)/10;   % s
 WaveAmp = Pars(2)/1000; % V
-WaveFreqInit = Pars(3)/1000;    % Hz
 WaveFreqLast = Pars(4)/1000;    % Hz
+WaveFreqInit = Pars(3)/1000;    % Hz
 chirpType = Pars(5); %0:linear, 1:exponential
 
 %% Make the stimulus
@@ -69,24 +69,24 @@ Vth = 0;
 switch chirpType
     case 0
         %option 1: linear
-        c = (WaveFreqInit - WaveFreqLast)/dur;
-        Waves(:,1) = ...
-            (WaveAmp-Vth)*abs(sin(2*pi*(c/2*tt.^2+WaveFreqLast*tt))') + Vth;
-        Waves(:,2) = ...
-            5*abs(square(4*pi*(c/2*tt.^2+WaveFreqLast*tt))'+1);
+        c = (WaveFreqLast - WaveFreqInit)/dur;
+        SS.WaveStim.Waves(:,1) = ...
+            (WaveAmp-Vth)*abs(sin(2*pi*(c/2*tt.^2+WaveFreqInit*tt))') + Vth;
+        SS.WaveStim.Waves(:,2) = ...
+            5*abs(square(4*pi*(c/2*tt.^2+WaveFreqInit*tt))'+1);
         
     case 1
         %option 2: exponential
-        k = WaveFreqInit/WaveFreqLast;
-        Waves(:,1) = ...
-            (WaveAmp-Vth)*abs(sin(2*pi*WaveFreqLast*(dur*(k.^(tt/dur)-1)/log(k)))') + Vth;
-        Waves(:,2) = ...
-            5*abs(square(4*pi*WaveFreqLast*(dur*(k.^(tt/dur)-1)/log(k)))'+1);
+        k = WaveFreqLast/WaveFreqInit;
+        SS.WaveStim.Waves(:,1) = ...
+            (WaveAmp-Vth)*abs(sin(2*pi*WaveFreqInit*(dur*(k.^(tt/dur)-1)/log(k)))') + Vth;
+        SS.WaveStim.Waves(:,2) = ...
+            5*abs(square(4*pi*WaveFreqInit*(dur*(k.^(tt/dur)-1)/log(k)))'+1);
 end
 
 %after Wave, reset to the 1st ptn
 % nFlips =  ceil((ntWavestop-ntWavestart)/fs*2);
-nFlips = sum(diff(Waves(:,2))>0);
+nFlips = sum(diff(SS.WaveStim.Waves(:,2))>0);
 if mod(nFlips,2) == 1
     SS.WaveStim.Waves(end,2) = 5;
 end
@@ -99,7 +99,7 @@ return
 
 %% To test the code
 
-SS = stimTTLWaveChirp(myScreenInfo); %#ok<UNRCH>
+SS = stimTTLChirp(myScreenInfo); %#ok<UNRCH>
 SS.Show(myScreenInfo)
 show( SS, myScreenInfo);
 
