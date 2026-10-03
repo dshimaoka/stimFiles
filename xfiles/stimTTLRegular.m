@@ -89,8 +89,8 @@ if nPtn > 0
     cycleIdx = floor(ttWave * WaveFreq);
     
     % Random amplitude for each cycle, uniformly distributed
-    WaveAmpCycle = WaveAmpMin + ...
-        (WaveAmpMax - WaveAmpMin) * rand(max(cycleIdx)+1, 1);
+    WaveAmpCycle = round(WaveAmpMin + ...
+        (WaveAmpMax - WaveAmpMin) * rand(max(cycleIdx)+1, 1));
     
     % Assign amplitude according to cycle
     WaveAmp_t = WaveAmpCycle(cycleIdx + 1);
