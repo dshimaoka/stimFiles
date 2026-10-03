@@ -3,6 +3,7 @@ function SS = stimTTLRegular(myScreenInfo,Pars)
 % SS = stimTTLSwitch(myScreenInfo,Pars) returns an object SS of type ScreenStim
 %
 % 2025-10 created from stimTTLSwitch
+% 2026-10 introduced WaveAmpMin and WaveAmpMax
 
 %% 
 
@@ -20,9 +21,10 @@ pp = cell(1,1);
 pp{1} = {'nPtn', '#images stored in DMD',1,0,100000};
 pp{2} = {'firstID', 'First Pattern ID to present',1,0,100000};
 pp{3} = {'lastID', 'Last Pattern ID to present',1,0,100000};
-pp{4}  = {'WaveAmp',   'Amplitude of wave (mV*1000)',    100, 0, 5000};
-pp{5}  = {'WaveFreq',  'Frequency (Hz)',             4400,0,20000};
-pp{6}  = {'WaveDuty',     'percentage of ON period per presentation(%)',   50,0,100}; 
+pp{4}  = {'WaveAmpMin',   'Min Amplitude of wave (mV*1000)',    100, 0, 5000};
+pp{5}  = {'WaveAmpMax',   'Max Amplitude of wave (mV*1000)',    100, 0, 5000};
+pp{6}  = {'WaveFreq',  'Frequency (Hz)',             4400,0,20000};
+pp{7}  = {'WaveDuty',     'percentage of ON period per presentation(%)',   50,0,100}; 
 x = XFile('stimTTLRegular',pp);
 % x.Write; % call this ONCE: it writes the .x file
 
@@ -38,9 +40,12 @@ firstID = Pars(2);
 lastID = Pars(3);
 assert(firstID<=lastID);
 assert(lastID<=nPtn);
-WaveAmp = Pars(4)/1000; %V
-WaveFreq = Pars(5);    % Hz
-WaveDuty   = Pars(6);    % [%]
+WaveAmpMin = Pars(4)/1000; %V
+WaveAmpMax = Pars(5)/1000; %V
+WaveFreq = Pars(6);    % Hz
+WaveDuty   = Pars(7);    % [%]
+
+assert(WaveAmpMin<=WaveAmpMax);
 
 margin = 1; %number of blank frames before/after TTL switching ... could be just 0?
 wavedur = (lastID-firstID + 1)/WaveFreq; %s
@@ -80,9 +85,19 @@ SS.WaveStim.Waves = zeros(nt,2);
 
 if nPtn > 0
     
-    %% wave
+    % Number of cycles
+    cycleIdx = floor(ttWave * WaveFreq);
+    
+    % Random amplitude for each cycle, uniformly distributed
+    WaveAmpCycle = WaveAmpMin + ...
+        (WaveAmpMax - WaveAmpMin) * rand(max(cycleIdx)+1, 1);
+    
+    % Assign amplitude according to cycle
+    WaveAmp_t = WaveAmpCycle(cycleIdx + 1);
+    
+    % Generate square wave
     SS.WaveStim.Waves(ntWavestart:ntWavestop-2,1) = ...
-        0.5*WaveAmp*(square(2*pi*WaveFreq*ttWave, WaveDuty)+1)';
+        0.5*WaveAmp_t .* (square(2*pi*WaveFreq*ttWave, WaveDuty) + 1)';
     
     
     %% TTL
