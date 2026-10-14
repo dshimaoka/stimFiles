@@ -2,13 +2,14 @@
 #	stimTTLRegular
 #
 #
-foo nonperiodic	7
+foo nonperiodic	8
 #
 0	nPtn	"                    Number of images stored in DMD"	0	0-100000 1+
 1	firstID	"                    First image Idx to present"	0	0-100000 1+
 2	lastID	"                    Last image Idx to present"	0	0-100000 1+
 3	WaveAmpMin	"         Min Amplitude of rectangle wave (mV*1000)"	100	0-5000 1+
 4	WaveAmpMax	"         Max Amplitude of rectangle wave (mV*1000)"	100	0-5000 1+
-5	WaveFreq	"          Refresh rate (Hz)"	1	0-20000 1+
-6	WaveDuty	"           Image ON ratio per presentation(%)"	50	0-100 1
+5	nAmp	"          Number of amplitudes"	1	0-5000 1+
+6	WaveFreq	"          Refresh rate (Hz)"	1	0-20000 1+
+7	WaveDuty	"           Image ON ratio per presentation(%)"	50	0-100 1
 

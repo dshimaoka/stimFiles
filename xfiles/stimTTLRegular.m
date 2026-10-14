@@ -23,8 +23,9 @@ pp{2} = {'firstID', 'First Pattern ID to present',1,0,100000};
 pp{3} = {'lastID', 'Last Pattern ID to present',1,0,100000};
 pp{4}  = {'WaveAmpMin',   'Min Amplitude of wave (mV*1000)',    100, 0, 5000};
 pp{5}  = {'WaveAmpMax',   'Max Amplitude of wave (mV*1000)',    100, 0, 5000};
-pp{6}  = {'WaveFreq',  'Frequency (Hz)',             4400,0,20000};
-pp{7}  = {'WaveDuty',     'percentage of ON period per presentation(%)',   50,0,100}; 
+pp{6} = {'nAmp', 'Number of Amplitudes', 1, 1, 5000};
+pp{7}  = {'WaveFreq',  'Frequency (Hz)',             4400,0,20000};
+pp{8}  = {'WaveDuty',     'percentage of ON period per presentation(%)',   50,0,100}; 
 x = XFile('stimTTLRegular',pp);
 % x.Write; % call this ONCE: it writes the .x file
 
@@ -42,14 +43,16 @@ assert(firstID<=lastID);
 assert(lastID<=nPtn);
 WaveAmpMin = Pars(4)/1000; %V
 WaveAmpMax = Pars(5)/1000; %V
-WaveFreq = Pars(6);    % Hz
-WaveDuty   = Pars(7);    % [%]
+nAmp = Pars(6);
+WaveFreq = Pars(7);    % Hz
+WaveDuty   = Pars(8);    % [%]
 
 assert(WaveAmpMin<=WaveAmpMax);
 
 margin = 1; %number of blank frames before/after TTL switching ... could be just 0?
 wavedur = (lastID-firstID + 1)/WaveFreq; %s
-fs = 5000;
+fs = myScreenInfo.WaveInfo.SampleRate;
+%fs = 5000;
 
 %% Make the stimulus
 
@@ -89,8 +92,12 @@ if nPtn > 0
     cycleIdx = floor(ttWave * WaveFreq);
     
     % Random amplitude for each cycle, uniformly distributed
-    WaveAmpCycle = round(WaveAmpMin + ...
-        (WaveAmpMax - WaveAmpMin) * rand(max(cycleIdx)+1, 1));
+    if nAmp > 1
+        WaveAmpCycle = WaveAmpMin + ...
+            (WaveAmpMax - WaveAmpMin) * floor(rand(max(cycleIdx)+1, 1) * nAmp) / (nAmp - 1);
+    elseif nAmp == 1
+        WaveAmpCycle = WaveAmpMax*ones(max(cycleIdx)+1,1);
+    end
     
     % Assign amplitude according to cycle
     WaveAmp_t = WaveAmpCycle(cycleIdx + 1);
